@@ -57,7 +57,7 @@ jobs:
 
       - name: Test report
         if: always()
-        uses: dorny/test-reporter@v2
+        uses: dorny/test-reporter@v3
         with:
           name: Tests (${{ matrix.layer }})
           path: test-results/${{ matrix.layer }}.xml
