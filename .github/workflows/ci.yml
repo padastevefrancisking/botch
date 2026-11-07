@@ -1,0 +1,64 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  checks: write # lets the test reporter post results on the PR
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install "gdtoolkit==4.*"
+      - name: gdlint
+        run: gdlint src test
+      - name: gdformat
+        run: gdformat --check src test
+
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        layer: [unit, integration, e2e]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-godot
+
+      - name: Run ${{ matrix.layer }} tests
+        run: |
+          mkdir -p test-results
+          godot --headless -s addons/gut/gut_cmdln.gd \
+            -gdir=res://test/${{ matrix.layer }} \
+            -gjunit_xml_file=res://test-results/${{ matrix.layer }}.xml \
+            2>&1 | tee gut.log
+          status=${PIPESTATUS[0]}
+          # GUT skips test scripts that fail to parse and can still exit 0.
+          if grep -q "SCRIPT ERROR" gut.log; then
+            echo "::error::Script errors found (see log above)"; exit 1
+          fi
+          exit $status
+
+      - name: Upload results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results-${{ matrix.layer }}
+          path: test-results/
+
+      - name: Test report
+        if: always()
+        uses: dorny/test-reporter@v2
+        with:
+          name: Tests (${{ matrix.layer }})
+          path: test-results/${{ matrix.layer }}.xml
+          reporter: java-junit

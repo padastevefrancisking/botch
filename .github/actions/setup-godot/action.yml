@@ -1,0 +1,48 @@
+name: Setup Godot
+description: Download (and cache) a headless Godot binary, optionally with export templates, then import the project.
+
+inputs:
+  version:
+    description: Godot version, e.g. 4.6.3
+    default: "4.6.3"
+  templates:
+    description: Also install export templates (needed for exports, not for tests)
+    default: "false"
+
+runs:
+  using: composite
+  steps:
+    - name: Cache Godot
+      id: cache
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/godot
+          ~/.local/share/godot/export_templates
+        key: godot-${{ inputs.version }}-templates-${{ inputs.templates }}
+
+    - name: Download Godot
+      if: steps.cache.outputs.cache-hit != 'true'
+      shell: bash
+      run: |
+        V=${{ inputs.version }}
+        BASE=https://github.com/godotengine/godot/releases/download/${V}-stable
+        mkdir -p ~/godot
+        curl -fsSL -o /tmp/godot.zip "$BASE/Godot_v${V}-stable_linux.x86_64.zip"
+        unzip -q /tmp/godot.zip -d ~/godot
+        mv ~/godot/Godot_v${V}-stable_linux.x86_64 ~/godot/godot
+        if [ "${{ inputs.templates }}" = "true" ]; then
+          curl -fsSL -o /tmp/tpl.tpz "$BASE/Godot_v${V}-stable_export_templates.tpz"
+          unzip -q /tmp/tpl.tpz -d /tmp/tpl
+          mkdir -p ~/.local/share/godot/export_templates/${V}.stable
+          mv /tmp/tpl/templates/* ~/.local/share/godot/export_templates/${V}.stable/
+        fi
+
+    - name: Add Godot to PATH
+      shell: bash
+      run: echo "$HOME/godot" >> "$GITHUB_PATH"
+
+    # .godot/ is gitignored, so the class_name cache must be rebuilt first.
+    - name: Import project
+      shell: bash
+      run: godot --headless --import || true

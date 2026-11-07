@@ -1,0 +1,10 @@
+# Godot 4+ specific ignores
+.godot/
+/android/
+
+# Build and test outputs
+/build/
+/test-results/
+
+# Local Claude Code settings
+.claude/settings.local.json

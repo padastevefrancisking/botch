@@ -1,0 +1,81 @@
+name: CD
+
+# main -> playable web build on GitHub Pages
+# tag v* -> Windows build attached to a GitHub Release
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  workflow_dispatch:
+
+concurrency:
+  group: cd-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # Exports are skipped until you create presets in the Godot editor and commit them.
+  check:
+    runs-on: ubuntu-latest
+    outputs:
+      has_presets: ${{ steps.p.outputs.has_presets }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: p
+        run: |
+          if [ -f export_presets.cfg ]; then v=true; else v=false; fi
+          echo "has_presets=$v" >> "$GITHUB_OUTPUT"
+          [ "$v" = true ] || echo "::notice::No export_presets.cfg yet, so exports are skipped"
+
+  web:
+    needs: check
+    if: github.ref == 'refs/heads/main' && needs.check.outputs.has_presets == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-godot
+        with:
+          templates: "true"
+      - name: Export Web
+        run: |
+          mkdir -p build/web
+          godot --headless --export-release "Web" build/web/index.html
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: build/web
+
+  deploy-pages:
+    needs: web
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - id: deploy
+        uses: actions/deploy-pages@v4
+
+  release:
+    needs: check
+    if: startsWith(github.ref, 'refs/tags/v') && needs.check.outputs.has_presets == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-godot
+        with:
+          templates: "true"
+      - name: Export Windows
+        run: |
+          mkdir -p build/windows
+          godot --headless --export-release "Windows Desktop" build/windows/botch.exe
+          cd build/windows && zip -r ../botch-${{ github.ref_name }}-windows.zip .
+      - name: Create release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "${{ github.ref_name }}" \
+            build/botch-${{ github.ref_name }}-windows.zip \
+            --generate-notes
