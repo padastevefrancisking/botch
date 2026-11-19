@@ -1,7 +1,5 @@
-@abstract
-class_name Effect
+@abstract class_name Effect
 extends RefCounted
-
 
 @abstract
 @warning_ignore("unused_parameter")

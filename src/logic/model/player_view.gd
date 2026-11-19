@@ -1,6 +1,7 @@
 class_name PlayerView
 extends RefCounted
 
+
 class PlayerEntry:
 	var id: StringName
 	var username: String
@@ -17,7 +18,8 @@ class PlayerEntry:
 
 
 var observer_id: StringName
-var players : Array[PlayerEntry]
+var players: Array[PlayerEntry]
+
 
 static func build(state: GameState, observer: PlayerState) -> PlayerView:
 	var view := PlayerView.new()

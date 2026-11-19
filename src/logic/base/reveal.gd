@@ -5,10 +5,12 @@
 class_name Reveal
 extends RefCounted
 
+
 ## Stable list of ids for all type of reveals in the game
 class RevealKind:
 	const ROLE := &"role"
 	const TEAM := &"team"
+
 
 @abstract
 ## Returns which kind of reveal this is: one of the [RevealKind] constants.
