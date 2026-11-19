@@ -25,11 +25,3 @@ const OTHER_NIGHTS: Array[String] = [
 	Roles.FORTUNE_TELLER,
 	Roles.BUTLER
 ]
-
-static func wake_up_night(ctx, night_number: int) -> void:
-	for members in (FIRST_NIGHT if night_number < 2 else OTHER_NIGHTS):
-		pass
-		
-
-func _find_player_by_role(ctx, role_name: String):
-	pass
