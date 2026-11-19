@@ -11,7 +11,13 @@ var has_last_vote := true
 var departed := false
 var statuses := {}
 
-func _init(p_id: StringName, p_name: String, p_seat_no: int, p_role: RoleDef, p_shown_role: RoleDef) -> void:
+func _init(
+	p_id: StringName,
+	p_name: String,
+	p_seat_no: int,
+	p_role: RoleDef,
+	p_shown_role: RoleDef
+) -> void:
 	id = p_id
 	username = p_name
 	seat_no = p_seat_no

@@ -3,14 +3,14 @@ extends Reveal
 
 var team_id: Teams.Kind
 
-func _init(p_character: Teams.Kind) -> void:
-	team_id = p_character 
+func _init(p_team: Teams.Kind) -> void:
+	team_id = p_team
 
 func kind() -> StringName:
 	return RevealKind.TEAM
 
 func id() -> StringName:
-	return StringName("TEAM_" + Teams.Kind.find_key(team_id)).to_upper()
+	return Teams.get_id(team_id)
 
 func matches(p: PlayerState) -> bool:
 	return team_id == p.role.team

@@ -16,19 +16,19 @@ func find_player_by_id(id: StringName) -> PlayerState:
 	for p in players:
 		if p.id == id:
 			return p
-	
+
 	return null
 
 func living_neighbours(p: PlayerState) -> Array[PlayerState]:
 	var ps = players.duplicate()
 	ps.sort_custom(
-		func(a: PlayerState, b: PlayerState): 
+		func(a: PlayerState, b: PlayerState):
 			return a.seat_no < b.seat_no
 	)
-	
+
 	var n := ps.size()
 	var idx := ps.find(p)
-	
+
 	var out: Array[PlayerState]
 	var directions: Array[int] = [-1, 1]
 	for d in directions:

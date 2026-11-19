@@ -1,7 +1,7 @@
 class_name Teams
 extends RefCounted
 
-enum Kind { 
+enum Kind {
 	TOWNSFOLK,
 	OUTSIDER,
 	MINION,
