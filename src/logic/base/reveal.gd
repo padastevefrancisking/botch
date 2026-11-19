@@ -1,5 +1,7 @@
 @abstract
-## An abstract class, representing something that a player can learn about another player. This may be in a form of its team or role.
+## An abstract class, representing something that a player can
+## learn about another player. This may be in a form of its
+## team or role.
 class_name Reveal
 extends RefCounted
 
@@ -17,5 +19,7 @@ func kind() -> StringName
 func id() -> StringName
 
 @abstract
-## Checks the player's real role. Returns [code]true[/code] if [param player] fits the reveal, otherwise returns [code]false[/code].
+## Checks the player's real role. Returns [code]true[/code] if
+## [param player] fits the reveal, otherwise returns
+## [code]false[/code].
 func matches(player: PlayerState) -> bool
