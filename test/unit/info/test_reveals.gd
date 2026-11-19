@@ -20,7 +20,7 @@ func test_ut_reveal_04_role_reveal_rejects_other_role() -> void:
 	assert_false(RoleReveal.new(&"ROLE_SOMETHING_ELSE").matches(p))
 
 
-func test_ut_reveal_05_role_reveal_uses_real_role() -> void:
+func test_ut_reveal_05_rule_08_role_reveal_uses_real_role() -> void:
 	var shown := TestFixtures.role(Teams.Kind.TOWNSFOLK, &"ROLE_SHOWN")
 	var p := TestFixtures.player(0, Teams.Kind.OUTSIDER, shown)
 	assert_true(RoleReveal.new(p.role.id).matches(p), "real role should match")
@@ -45,7 +45,7 @@ func test_ut_reveal_09_team_reveal_rejects_other_team() -> void:
 	assert_false(TeamReveal.new(Teams.Kind.MINION).matches(p))
 
 
-func test_ut_reveal_10_team_reveal_uses_real_team() -> void:
+func test_ut_reveal_10_rule_08_team_reveal_uses_real_team() -> void:
 	var shown := TestFixtures.role(Teams.Kind.TOWNSFOLK)
 	var p := TestFixtures.player(0, Teams.Kind.OUTSIDER, shown)
 	assert_true(TeamReveal.new(Teams.Kind.OUTSIDER).matches(p), "real team should match")

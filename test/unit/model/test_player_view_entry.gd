@@ -8,11 +8,11 @@ func before_each() -> void:
 	entry = PlayerView.PlayerEntry.new()
 
 
-func test_ut_view_01_no_reveal_gives_empty_id() -> void:
+func test_ut_view_01_net_07_no_reveal_gives_empty_id() -> void:
 	assert_eq(entry.reveal_id(), &"")
 
 
-func test_ut_view_02_no_reveal_gives_empty_kind() -> void:
+func test_ut_view_02_net_07_no_reveal_gives_empty_kind() -> void:
 	assert_eq(entry.reveal_kind(), &"")
 
 

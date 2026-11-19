@@ -1,5 +1,5 @@
 extends GutTest
-## IT-REVEAL: reveals checked against every player in a game.
+## UT-REVEAL-12..14: reveals checked against every player in a game.
 
 var state: GameState
 
@@ -16,19 +16,19 @@ func _count(reveal: Reveal) -> int:
 	return n
 
 
-func test_it_reveal_01_team_reveal_counts() -> void:
+func test_ut_reveal_12_team_reveal_counts() -> void:
 	assert_eq(_count(TeamReveal.new(Teams.Kind.TOWNSFOLK)), 3)
 	assert_eq(_count(TeamReveal.new(Teams.Kind.OUTSIDER)), 1)
 	assert_eq(_count(TeamReveal.new(Teams.Kind.MINION)), 2)
 	assert_eq(_count(TeamReveal.new(Teams.Kind.DEMON)), 1)
 
 
-func test_it_reveal_02_role_reveal_hits_one_player() -> void:
+func test_ut_reveal_13_role_reveal_hits_one_player() -> void:
 	for target in state.players:
 		var reveal := RoleReveal.new(target.role.id)
 		for p in state.players:
 			assert_eq(reveal.matches(p), p == target, "%s vs seat %d" % [target.role.id, p.seat_no])
 
 
-func test_it_reveal_03_exactly_one_demon() -> void:
+func test_ut_reveal_14_exactly_one_demon() -> void:
 	assert_eq(_count(TeamReveal.new(Teams.Kind.DEMON)), 1)

@@ -4,9 +4,14 @@ Status: **v0.1**. Covers only code that is implemented today. Features that are 
 not started (e.g. `GameState.living_players`, night resolution, voting, win checks, lobby,
 movement, voice) get test cases when they are built.
 
-Every test function name starts with its ID, e.g. `test_ut_state_07_wraps_around`, so searching
-for an ID finds the case here and the code in `test/`. The **Req** column links to
-[rules.md](rules.md) / [requirements.md](requirements.md) where a case backs a rule.
+**Naming:** `test_<case id>_<req id>_<description>`. The requirement part is only there when
+the case checks a rule from [rules.md](rules.md) or [requirements.md](requirements.md) (see
+requirements.md §7). For example, `test_ut_player_08_rule_40_not_in_play_when_dead` is case
+UT-PLAYER-08 and backs RULE-40. Searching for either ID finds the case here and the code in
+`test/`. The **Req** column lists the requirement, or a section (§) for context only.
+
+**Layers** follow the README: `test/unit` is pure logic with no scene tree,
+`test/integration` puts nodes or scenes in the tree, and `test/e2e` boots the main scene.
 
 Tests are role-agnostic: they build players from made-up fixture roles
 (`test/support/fixtures.gd`), not from the real role list.
@@ -44,7 +49,7 @@ Generic checks on the id list only, no role behaviour.
 | Test ID | Req | Title | Steps | Expected behaviour | Result |
 | --- | --- | --- | --- | --- | --- |
 | UT-ROLEID-01 | | Ids are not empty | Read every constant in `Roles` | Every value is a non-empty string | Pass |
-| UT-ROLEID-02 | RULE-04 | Ids are unique | Read every constant in `Roles` | No two constants share a value | Pass |
+| UT-ROLEID-02 | | Ids are unique | Read every constant in `Roles` | No two constants share a value | Pass |
 | UT-ROLEID-03 | | Ids use the `ROLE_` prefix | Read every constant in `Roles` | Every value starts with `ROLE_` | Pass |
 | UT-ROLEID-04 | | Id format | Read every constant in `Roles` | Every value matches `^ROLE_[A-Z]+$` (upper case, no spaces) | Pass |
 
@@ -136,9 +141,9 @@ Seats form a ring. A neighbour is the nearest **in-play** player on each side.
 
 | Test ID | Req | Title | Steps | Expected behaviour | Result |
 | --- | --- | --- | --- | --- | --- |
-| UT-RESULT-01 | RULE-30 | Good win stores winners | `GameResult.new(true, [p0, p1])` | `good_won` true, `winners` is `[p0, p1]` | Pass |
-| UT-RESULT-02 | RULE-31 | Evil win stores winners | `GameResult.new(false, [p2])` | `good_won` false, `winners` is `[p2]` | Pass |
-| UT-RESULT-03 | RULE-41 | Empty winners allowed | `GameResult.new(true, [])` | `winners` is empty | Pass |
+| UT-RESULT-01 | | Good win stores winners | `GameResult.new(true, [p0, p1])` | `good_won` true, `winners` is `[p0, p1]` | Pass |
+| UT-RESULT-02 | | Evil win stores winners | `GameResult.new(false, [p2])` | `good_won` false, `winners` is `[p2]` | Pass |
+| UT-RESULT-03 | | Empty winners allowed | `GameResult.new(true, [])` | `winners` is empty | Pass |
 
 ### 1.10 PlayerView entry (`src/logic/model/player_view.gd`): `test/unit/model/test_player_view_entry.gd`
 
@@ -165,11 +170,49 @@ Seats form a ring. A neighbour is the nearest **in-play** player on each side.
 | UT-HEALTH-10 | | Ignored amounts emit nothing | `take_damage(0)`, `heal(-5)` | `changed` not emitted | Pass |
 | UT-HEALTH-11 | | Alive at start | `Health.new(100)` | `is_dead()` false | Pass |
 
+### 1.12 PlayerView: who sees what: `test/unit/model/test_player_view.gd`
+
+Fixture game: seat 0 Demon, seats 1–2 Minions, seat 3 Outsider, seats 4–6 Townsfolk.
+
+| Test ID | Req | Title | Steps | Expected behaviour | Result |
+| --- | --- | --- | --- | --- | --- |
+| UT-VIEW-05 | NET-07 | One entry per player | Build view for seat 4 | 7 entries; `observer_id` is `p4` | Pass |
+| UT-VIEW-06 | | Public fields copied | Kill seat 5, depart seat 6; build view | Each entry has the right id, username, seat, alive, departed | Pass |
+| UT-VIEW-07 | LOB-07 | Player sees own role | Build view for seat 4 | Own entry is `RoleReveal` of own role | Pass |
+| UT-VIEW-08 | RULE-08 | Player sees shown role, not real role | Seat 3: real Outsider, shown a Townsfolk role; build view for seat 3 | Own entry shows the shown role id | Pass |
+| UT-VIEW-09 | NET-07 | Townsfolk sees no one else | Build view for seat 4 | Every other entry has no reveal | Pass |
+| UT-VIEW-10 | NET-07 | Outsider sees no one else | Build view for seat 3 | Every other entry has no reveal | Pass |
+| UT-VIEW-11 | RULE-10 | Demon sees Minions as team only | Build view for seat 0 | Seats 1–2 are `TeamReveal(MINION)` | Pass |
+| UT-VIEW-12 | RULE-10 | Minion sees the Demon's role | Build view for seat 1 | Seat 0 is `RoleReveal` of the Demon's role | Pass |
+| UT-VIEW-13 | RULE-10 | Minion sees other Minion as team | Build view for seat 1 | Seat 2 is `TeamReveal(MINION)` | Pass |
+| UT-VIEW-14 | NET-07 | Evil sees no good roles | Build views for seats 0 and 1 | Seats 3–6 have no reveal | Pass |
+| UT-VIEW-15 | | Reveals are true | Build view for each evil player | Every reveal `matches` the player it is attached to | Pass |
+| UT-VIEW-16 | RULE-10 | Dead evil still known | Kill seat 2; build view for seat 0 | Seat 2 still `TeamReveal(MINION)`, `is_alive` false | Pass |
+| UT-VIEW-17 | | Building a view changes nothing | Build views for every player | Game state players unchanged (order, alive, departed, statuses) | Pass |
+| UT-VIEW-18 | NET-07 | Views are separate | Build views for seats 0 and 4 | They don't share entry objects | Pass |
+
+### 1.13 Seating over a game: `test/unit/model/test_seating.gd`
+
+| Test ID | Req | Title | Steps | Expected behaviour | Result |
+| --- | --- | --- | --- | --- | --- |
+| UT-SEAT-01 | §7 | Neighbours update as players die | 7 players; kill seats 1, 6, 2, 5 one at a time; check seat 0 after each | Seat 0's neighbours move outward each step | Pass |
+| UT-SEAT-02 | RULE-40 | Departed counts like dead | Same game twice: once killing seat 1, once departing it | Seat 0's neighbours are the same both times | Pass |
+| UT-SEAT-03 | | Neighbours are mutual | 9 players with some dead; for every in-play pair | If A lists B, B lists A | Pass |
+| UT-SEAT-04 | | Revived player is a neighbour again | Kill seat 1, then set `alive = true` | Seat 0's neighbours include seat 1 again | Pass |
+
+### 1.14 Reveals over a game: `test/unit/info/test_reveals_in_game.gd`
+
+| Test ID | Req | Title | Steps | Expected behaviour | Result |
+| --- | --- | --- | --- | --- | --- |
+| UT-REVEAL-12 | | Team reveal counts | 7-player fixture game; for each kind count players `TeamReveal(kind)` matches | Counts are 3 Townsfolk, 1 Outsider, 2 Minion, 1 Demon | Pass |
+| UT-REVEAL-13 | | Role reveal hits one player | For each player, test `RoleReveal(player.role.id)` on everyone | Matches exactly that player | Pass |
+| UT-REVEAL-14 | | Exactly one Demon | Count `TeamReveal(DEMON)` matches | 1 | Pass |
+
 ---
 
 ## 2. Integration tests (`test/integration`)
 
-Several real classes working together.
+Nodes and scenes in the scene tree.
 
 ### 2.1 Project loads: `test/integration/test_project_loads.gd`
 
@@ -178,45 +221,7 @@ Several real classes working together.
 | IT-LOAD-01 | | All scripts load | Walk `res://src` and `res://constants`; `load()` every `.gd` | Every script loads (no parse errors) | Pass |
 | IT-LOAD-02 | | All scenes instantiate | Walk `res://scenes`; load and instantiate every `.tscn` | Every scene loads and instantiates | Pass |
 
-### 2.2 Player view: who sees what: `test/integration/test_player_view.gd`
-
-Fixture game: seat 0 Demon, seats 1–2 Minions, seat 3 Outsider, seats 4–6 Townsfolk.
-
-| Test ID | Req | Title | Steps | Expected behaviour | Result |
-| --- | --- | --- | --- | --- | --- |
-| IT-VIEW-01 | NET-07 | One entry per player | Build view for seat 4 | 7 entries; `observer_id` is `p4` | Pass |
-| IT-VIEW-02 | | Public fields copied | Kill seat 5, depart seat 6; build view | Each entry has the right id, username, seat, alive, departed | Pass |
-| IT-VIEW-03 | LOB-07 | Player sees own role | Build view for seat 4 | Own entry is `RoleReveal` of own role | Pass |
-| IT-VIEW-04 | RULE-08 | Player sees shown role, not real role | Seat 3: real Outsider, shown a Townsfolk role; build view for seat 3 | Own entry shows the shown role id | Pass |
-| IT-VIEW-05 | NET-07 | Townsfolk sees no one else | Build view for seat 4 | Every other entry has no reveal | Pass |
-| IT-VIEW-06 | NET-07 | Outsider sees no one else | Build view for seat 3 | Every other entry has no reveal | Pass |
-| IT-VIEW-07 | RULE-10 | Demon sees Minions as team only | Build view for seat 0 | Seats 1–2 are `TeamReveal(MINION)` | Pass |
-| IT-VIEW-08 | RULE-10 | Minion sees the Demon's role | Build view for seat 1 | Seat 0 is `RoleReveal` of the Demon's role | Pass |
-| IT-VIEW-09 | RULE-10 | Minion sees other Minion as team | Build view for seat 1 | Seat 2 is `TeamReveal(MINION)` | Pass |
-| IT-VIEW-10 | NET-07 | Evil sees no good roles | Build views for seats 0 and 1 | Seats 3–6 have no reveal | Pass |
-| IT-VIEW-11 | | Reveals are true | Build view for each evil player | Every reveal `matches` the player it is attached to | Pass |
-| IT-VIEW-12 | RULE-10 | Dead evil still known | Kill seat 2; build view for seat 0 | Seat 2 still `TeamReveal(MINION)`, `is_alive` false | Pass |
-| IT-VIEW-13 | | Building a view changes nothing | Build views for every player | Game state players unchanged (order, alive, departed, statuses) | Pass |
-| IT-VIEW-14 | NET-07 | Views are separate | Build views for seats 0 and 4 | They don't share entry objects | Pass |
-
-### 2.3 Seating over a game: `test/integration/test_seating.gd`
-
-| Test ID | Req | Title | Steps | Expected behaviour | Result |
-| --- | --- | --- | --- | --- | --- |
-| IT-SEAT-01 | §7 | Neighbours update as players die | 7 players; kill seats 1, 6, 2, 5 one at a time; check seat 0 after each | Seat 0's neighbours move outward each step | Pass |
-| IT-SEAT-02 | RULE-40 | Departed counts like dead | Same game twice: once killing seat 1, once departing it | Seat 0's neighbours are the same both times | Pass |
-| IT-SEAT-03 | | Neighbours are mutual | 9 players with some dead; for every in-play pair | If A lists B, B lists A | Pass |
-| IT-SEAT-04 | | Revived player is a neighbour again | Kill seat 1, then set `alive = true` | Seat 0's neighbours include seat 1 again | Pass |
-
-### 2.4 Reveals over a game: `test/integration/test_reveals_in_game.gd`
-
-| Test ID | Req | Title | Steps | Expected behaviour | Result |
-| --- | --- | --- | --- | --- | --- |
-| IT-REVEAL-01 | RULE-03 | Team reveal counts | 7-player fixture game; for each kind count players `TeamReveal(kind)` matches | Counts are 3 Townsfolk, 1 Outsider, 2 Minion, 1 Demon | Pass |
-| IT-REVEAL-02 | RULE-04 | Role reveal hits one player | For each player, test `RoleReveal(player.role.id)` on everyone | Matches exactly that player | Pass |
-| IT-REVEAL-03 | RULE-06 | Exactly one Demon | Count `TeamReveal(DEMON)` matches | 1 | Pass |
-
-### 2.5 Health component: `test/integration/test_health_component.gd`
+### 2.2 Health component: `test/integration/test_health_component.gd`
 
 | Test ID | Req | Title | Steps | Expected behaviour | Result |
 | --- | --- | --- | --- | --- | --- |
@@ -254,11 +259,22 @@ Boot the real main scene.
 | E2E | 1 | 5 | 5 | 0 | 9 |
 | **Total** | **17** | **109** | **109** | **0** | **439** |
 
+**Run 2: 2026-11-20**, branch `feat/roles` @ `2a51b4f` + layer/naming changes. Three
+pure-logic files moved from integration to unit (IDs renumbered to UT-VIEW-05..18,
+UT-SEAT-01..04 and UT-REVEAL-12..14), and requirement IDs were added to test names.
+
+| Layer | Scripts | Tests | Passing | Failing | Asserts |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| Unit | 14 | 98 | 98 | 0 | 404 |
+| Integration | 2 | 6 | 6 | 0 | 26 |
+| E2E | 1 | 5 | 5 | 0 | 9 |
+| **Total** | **17** | **109** | **109** | **0** | **439** |
+
 Each test case maps to one test function (109 cases, 109 tests). GUT counts a parameterised
 test once. `gdlint src test` and `gdformat --check src test` both pass.
 
 **Mutation check:** `PlayerView.build` was temporarily changed to reveal every player's real
-role to everyone. IT-VIEW-05, IT-VIEW-06 and IT-VIEW-10 failed as they should, then the
+role to everyone. UT-VIEW-09, UT-VIEW-10 and UT-VIEW-14 failed as they should, then the
 change was reverted.
 
 ## 5. Defects and observations
@@ -268,7 +284,7 @@ No defects found in implemented code on this run.
 | # | Area | Observation | Suggested action |
 | --- | --- | --- | --- |
 | O-1 | `GameState.living_neighbours` | Passing a player who isn't in `players` doesn't return empty or error: `find` gives -1 and the loop returns arbitrary players. No test, because no expected behaviour is defined. | Decide: return `[]` or `assert`. Then add UT-STATE-21. |
-| O-2 | `PlayerView.build` | Minions see the Demon's **shown** role, not the real one. That's the same today, because no Demon has a different shown role. If one ever does (e.g. a disguise), IT-VIEW-11 will flag it. | Confirm which one minions should see. |
+| O-2 | `PlayerView.build` | Minions see the Demon's **shown** role, not the real one. That's the same today, because no Demon has a different shown role. If one ever does (e.g. a disguise), UT-VIEW-15 will flag it. | Confirm which one minions should see. |
 | O-3 | Roles | `constants/players/roles.gd` and `night_order.gd` use different role names from `rules.md` (Village/Strays/Cultists/Fiend). Role tests are role-agnostic until that's settled. | Align the constants with `rules.md`. |
 
 ### Not covered yet (stubs or not built)

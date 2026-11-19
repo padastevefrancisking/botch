@@ -45,27 +45,27 @@ func test_ut_player_06_statuses_are_independent() -> void:
 	assert_false(player.has_status(&"protected"))
 
 
-func test_ut_player_07_in_play_when_alive_and_present() -> void:
+func test_ut_player_07_rule_40_in_play_when_alive_and_present() -> void:
 	assert_true(player.is_in_play())
 
 
-func test_ut_player_08_not_in_play_when_dead() -> void:
+func test_ut_player_08_rule_40_not_in_play_when_dead() -> void:
 	player.alive = false
 	assert_false(player.is_in_play())
 
 
-func test_ut_player_09_not_in_play_when_departed() -> void:
+func test_ut_player_09_rule_40_not_in_play_when_departed() -> void:
 	player.departed = true
 	assert_false(player.is_in_play())
 
 
-func test_ut_player_10_not_in_play_when_dead_and_departed() -> void:
+func test_ut_player_10_rule_40_not_in_play_when_dead_and_departed() -> void:
 	player.alive = false
 	player.departed = true
 	assert_false(player.is_in_play())
 
 
-func test_ut_player_11_shown_role_can_differ() -> void:
+func test_ut_player_11_rule_08_shown_role_can_differ() -> void:
 	var shown := TestFixtures.role(Teams.Kind.TOWNSFOLK, &"ROLE_SHOWN")
 	var p := TestFixtures.player(1, Teams.Kind.OUTSIDER, shown)
 	assert_eq(p.role.team, Teams.Kind.OUTSIDER)

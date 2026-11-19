@@ -37,7 +37,7 @@ func test_ut_state_11_skips_dead_player() -> void:
 	assert_eq(_neighbour_seats(state, 2), [1, 4])
 
 
-func test_ut_state_12_skips_departed_player() -> void:
+func test_ut_state_12_rule_40_skips_departed_player() -> void:
 	var state := TestFixtures.town(5)
 	state.players[1].departed = true
 	assert_eq(_neighbour_seats(state, 2), [0, 3])
