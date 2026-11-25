@@ -7,10 +7,7 @@ var among: Array[PlayerState]
 
 
 func _init(
-	p_receiver: PlayerState,
-	p_reveal: Reveal,
-	p_count: int,
-	p_among: Array[PlayerState] = []  # For revealing only the count with no selected people
+	p_receiver: PlayerState, p_reveal: Reveal, p_count: int, p_among: Array[PlayerState] = []
 ) -> void:
 	receiver = p_receiver
 	reveal = p_reveal
