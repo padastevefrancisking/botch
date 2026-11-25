@@ -8,8 +8,9 @@ extends RefCounted
 
 ## Stable list of ids for all type of reveals in the game
 class RevealKind:
-	const ROLE := &"role"
-	const TEAM := &"team"
+	const ROLE := &"REVEAL_ROLE"
+	const TEAM := &"REVEAL_TEAM"
+	const ALIGNMENT := &"REVEAL_ALIGNMENT"
 
 
 @abstract
