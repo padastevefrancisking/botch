@@ -1,2 +1,2 @@
-class_name Query
+@abstract class_name Query
 extends RefCounted
