@@ -7,16 +7,16 @@ var seat_no: int
 var role: RoleDef
 var shown_role: RoleDef
 var alive := true
-var has_last_vote := true
+var has_ghost_vote := true
 var departed := false
-var statuses := {}
+var statuses: Dictionary[StringName, bool] = {}
 
 
 func _init(
-	p_id: StringName, p_name: String, p_seat_no: int, p_role: RoleDef, p_shown_role: RoleDef
+	p_id: StringName, p_username: String, p_seat_no: int, p_role: RoleDef, p_shown_role: RoleDef
 ) -> void:
 	id = p_id
-	username = p_name
+	username = p_username
 	seat_no = p_seat_no
 	role = p_role
 	shown_role = p_shown_role

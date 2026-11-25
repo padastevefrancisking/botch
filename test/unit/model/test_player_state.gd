@@ -21,7 +21,7 @@ func test_ut_player_01_constructor_stores_fields() -> void:
 
 func test_ut_player_02_defaults() -> void:
 	assert_true(player.alive)
-	assert_true(player.has_last_vote)
+	assert_true(player.has_ghost_vote)
 	assert_false(player.departed)
 	assert_eq(player.statuses, {})
 
